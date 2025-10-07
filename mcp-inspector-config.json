@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "goplus-security": {
+      "command": "http://localhost:8081/mcp",
+      "transport": "http",
+      "args": [],
+      "env": {}
+    }
+  }
+}

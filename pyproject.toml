@@ -1,0 +1,36 @@
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[project]
+name = "goplus-security-server"
+version = "0.1.0"
+description = "GoPlus Security MCP server for blockchain security analysis"
+authors = [
+    {name = "GoPlus Security", email = "contact@gopluslabs.io"}
+]
+
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.15.0",
+    "smithery>=0.4.2",
+    "requests>=2.31.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.scripts]
+dev = "smithery.cli.dev:main" # Run the MCP server in development mode
+start = "smithery.cli.start:main" # Run the MCP server in production mode
+playground = "smithery.cli.playground:main" # Run server with interactive testing playground
+
+[tool.smithery]
+server = "goplus_security_server.server:create_server" # Function that returns a patched FastMCP server
+log_level = "warning" # Production log level (optional, defaults to "warning")
