@@ -1,30 +1,34 @@
-FROM python:3.11-slim
+# Use a Python image with uv pre-installed
+FROM ghcr.io/astral-sh/uv:python3.12-alpine
 
+# Install the project into `/app`
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-# Install Python dependencies directly
-RUN pip install --no-cache-dir \
-    mcp>=1.15.0 \
-    smithery>=0.4.2 \
-    requests>=2.31.0 \
-    pydantic>=2.0.0 \
-    fastapi>=0.104.0 \
-    uvicorn>=0.24.0
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
 
-# Copy source code and main.py
-COPY src/ .
-COPY main.py .
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
 
-# Make main.py executable
-RUN chmod +x main.py
+# Then, add the rest of the project source code and install it
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
-# Expose port
-EXPOSE 8081
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Start the server
+# Set transport mode to HTTP
+ENV TRANSPORT=http
+
+# Reset the entrypoint, don't invoke `uv`
+ENTRYPOINT []
+
+# Run the application directly using the venv Python
 CMD ["python", "main.py"]
