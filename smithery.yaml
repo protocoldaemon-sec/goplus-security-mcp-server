@@ -1,33 +1,4 @@
-runtime: "container"
+runtime: "python"
 name: "GoPlus Security"
 description: "Blockchain security analysis using GoPlus Security API"
 version: "0.1.0"
-
-build:
-  dockerfile: "Dockerfile"
-  dockerBuildPath: "."
-
-startCommand:
-  type: "http"
-  configSchema:
-    type: "object"
-    properties:
-      api_key:
-        type: "string"
-        description: "GoPlus Security API key for authentication"
-      base_url:
-        type: "string"
-        description: "Base URL for GoPlus Security API"
-        default: "https://api.gopluslabs.io/api/v1/"
-      timeout:
-        type: "integer"
-        description: "Request timeout in seconds"
-        default: 30
-        minimum: 5
-        maximum: 300
-    required: ["api_key"]
-
-  exampleConfig:
-    api_key: "your-goplus-api-key-here"
-    base_url: "https://api.gopluslabs.io/api/v1/"
-    timeout: 30
