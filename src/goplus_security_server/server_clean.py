@@ -28,7 +28,7 @@ def create_server():
     def _make_request(ctx: Context, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Make a request to the GoPlus Security API."""
         # Get configuration from session
-        config = ctx.session_config or {}
+        config = ctx.session_config
         api_key = config.api_key
         base_url = config.base_url
         timeout = config.timeout
@@ -49,7 +49,7 @@ def create_server():
             return {"error": f"Unexpected error: {str(e)}"}
 
     @server.tool()
-    def rug_pull_detection(ctx: Context, chain_id: str, address: str) -> str:
+    def rug_pull_detection(chain_id: str, address: str, ctx: Context) -> str:
         """
         Detect potential rug pull risks for a token contract.
         
@@ -83,7 +83,7 @@ def create_server():
             return f"Analysis failed: {result.get('message', 'Unknown error')}"
 
     @server.tool()
-    def phishing_site_detection(ctx: Context, url: str) -> str:
+    def phishing_site_detection(url: str, ctx: Context) -> str:
         """
         Check if a website is a known phishing site.
         
@@ -115,7 +115,7 @@ def create_server():
             return f"Analysis failed: {result.get('message', 'Unknown error')}"
 
     @server.tool()
-    def nft_security_analysis(ctx: Context, chain_id: str, address: str) -> str:
+    def nft_security_analysis(chain_id: str, address: str, ctx: Context) -> str:
         """
         Analyze NFT contract security.
         
@@ -149,7 +149,7 @@ def create_server():
             return f"Analysis failed: {result.get('message', 'Unknown error')}"
 
     @server.tool()
-    def address_security_analysis(ctx: Context, address: str) -> str:
+    def address_security_analysis(address: str, ctx: Context) -> str:
         """
         Analyze address security and reputation.
         
@@ -190,34 +190,30 @@ def create_server():
 ## Available Tools
 
 ### 1. Rug Pull Detection
-- **Function**: `rug_pull_detection(chain_id, address, api_key)`
+- **Function**: `rug_pull_detection(chain_id, address)`
 - **Purpose**: Detect potential rug pull risks for token contracts
 - **Parameters**:
   - `chain_id`: Blockchain chain ID (e.g., "1" for Ethereum, "56" for BSC)
   - `address`: Token contract address to analyze
-  - `api_key`: GoPlus Security API key
 
 ### 2. Phishing Site Detection
-- **Function**: `phishing_site_detection(url, api_key)`
+- **Function**: `phishing_site_detection(url)`
 - **Purpose**: Check if a website is a known phishing site
 - **Parameters**:
   - `url`: Website URL to check
-  - `api_key`: GoPlus Security API key
 
 ### 3. NFT Security Analysis
-- **Function**: `nft_security_analysis(chain_id, address, api_key)`
+- **Function**: `nft_security_analysis(chain_id, address)`
 - **Purpose**: Analyze NFT contract security
 - **Parameters**:
   - `chain_id`: Blockchain chain ID
   - `address`: NFT contract address to analyze
-  - `api_key`: GoPlus Security API key
 
 ### 4. Address Security Analysis
-- **Function**: `address_security_analysis(address, api_key)`
+- **Function**: `address_security_analysis(address)`
 - **Purpose**: Analyze address security and reputation
 - **Parameters**:
   - `address`: Blockchain address to analyze
-  - `api_key`: GoPlus Security API key
 
 ## Supported Blockchains
 - Ethereum (chain_id: "1")

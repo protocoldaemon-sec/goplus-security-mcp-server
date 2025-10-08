@@ -9,7 +9,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from starlette.middleware.cors import CORSMiddleware
 from typing import Optional
-from src.goplus_security_server.server import create_server
+from src.goplus_security_server.server_clean import create_server
 
 
 def main():
@@ -23,8 +23,14 @@ def main():
         # Create the MCP server
         mcp_server = create_server()
         
+        # Extract the underlying FastMCP server from Smithery wrapper
+        if hasattr(mcp_server, 'server'):
+            fastmcp_server = mcp_server.server
+        else:
+            fastmcp_server = mcp_server
+        
         # Setup Starlette app with CORS for cross-origin requests
-        app = mcp_server.streamable_http_app()
+        app = fastmcp_server.streamable_http_app()
         
         # Add CORS middleware for browser-based clients
         app.add_middleware(
