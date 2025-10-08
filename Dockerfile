@@ -14,19 +14,19 @@ RUN pip install uv
 WORKDIR /app
 
 # Copy project files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
-# Install dependencies
-RUN uv sync --locked --no-dev
+# Install dependencies using pip instead of uv for better compatibility
+RUN pip install --no-cache-dir \
+    mcp>=1.15.0 \
+    requests>=2.31.0 \
+    pydantic>=2.0.0 \
+    fastapi>=0.104.0 \
+    uvicorn>=0.24.0 \
+    starlette>=0.27.0
 
 # Copy source code
 COPY . .
-
-# Install the project
-RUN uv sync --locked --no-dev
-
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH"
 
 # Set transport mode to HTTP
 ENV TRANSPORT=http
