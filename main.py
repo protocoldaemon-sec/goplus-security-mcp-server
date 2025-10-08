@@ -9,7 +9,7 @@ import uvicorn
 from mcp.server.fastmcp import FastMCP
 from starlette.middleware.cors import CORSMiddleware
 from typing import Optional
-from src.goplus_security_server.server_clean import create_server
+from src.goplus_security_server.server import create_server
 
 
 def main():
