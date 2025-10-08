@@ -17,6 +17,8 @@ class ConfigSchema(BaseModel):
     api_key: str = Field(..., description="GoPlus Security API key for authentication")
     base_url: str = Field("https://api.gopluslabs.io/api/v1/", description="Base URL for GoPlus Security API")
     timeout: int = Field(30, description="Request timeout in seconds", ge=5, le=300)
+    insightx_api_key: str = Field("", description="InsightX Network API key for additional analysis (optional)")
+    insightx_base_url: str = Field("https://api.insightx.network/scanner/v1/", description="Base URL for InsightX Network API")
 
 
 @smithery.server(config_schema=ConfigSchema)
@@ -45,6 +47,32 @@ def create_server():
             return response.json()
         except requests.exceptions.RequestException as e:
             return {"error": f"API request failed: {str(e)}"}
+        except Exception as e:
+            return {"error": f"Unexpected error: {str(e)}"}
+
+    def _make_insightx_request(ctx: Context, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Make a request to the InsightX Network API."""
+        # Get configuration from session
+        config = ctx.session_config
+        insightx_api_key = config.insightx_api_key
+        insightx_base_url = config.insightx_base_url
+        timeout = config.timeout
+        
+        if not insightx_api_key:
+            return {"error": "InsightX API key not provided"}
+        
+        url = f"{insightx_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+        headers = {
+            "accept": "application/json",
+            "X-API-Key": insightx_api_key
+        }
+        
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {"error": f"InsightX API request failed: {str(e)}"}
         except Exception as e:
             return {"error": f"Unexpected error: {str(e)}"}
 
@@ -1054,5 +1082,137 @@ Visit https://gopluslabs.io/ to get your GoPlus Security API key.
             return response
         else:
             return f"Analysis failed: {result.get('message', 'Unknown error')}"
+
+    @server.tool()
+    def insightx_solana_analysis(address: str, ctx: Context) -> str:
+        """
+        Analyze Solana token using InsightX Network API for additional insights.
+        
+        Args:
+            address: Solana token address to analyze
+        """
+        result = _make_insightx_request(ctx, f"tokens/sol/{address}")
+        
+        if "error" in result:
+            return f"Error: {result['error']}"
+        
+        # Format the response with InsightX analysis
+        response = f"🔍 InsightX Solana Token Analysis for {address}\n"
+        response += "=" * 60 + "\n\n"
+        
+        # Basic Information
+        response += "📋 Basic Information:\n"
+        response += f"• Address: {address}\n"
+        response += f"• Analysis Source: InsightX Network\n"
+        response += f"• Timestamp: {result.get('timestamp', 'N/A')}\n\n"
+        
+        # Raw Response for debugging/exploration
+        response += "📊 Raw Analysis Data:\n"
+        response += f"```json\n{result}\n```\n\n"
+        
+        # Try to extract meaningful information if available
+        if isinstance(result, dict):
+            # Look for common fields that might be present
+            if 'data' in result:
+                data = result['data']
+                response += "📈 Extracted Data:\n"
+                for key, value in data.items():
+                    response += f"• {key}: {value}\n"
+                response += "\n"
+            
+            # Look for risk indicators
+            risk_indicators = []
+            for key, value in result.items():
+                if any(risk_word in key.lower() for risk_word in ['risk', 'scam', 'honeypot', 'rug', 'malicious']):
+                    risk_indicators.append(f"• {key}: {value}")
+            
+            if risk_indicators:
+                response += "⚠️ Risk Indicators Found:\n"
+                for indicator in risk_indicators:
+                    response += f"{indicator}\n"
+                response += "\n"
+            
+            # Look for security scores or ratings
+            security_fields = []
+            for key, value in result.items():
+                if any(security_word in key.lower() for security_word in ['score', 'rating', 'security', 'trust', 'safety']):
+                    security_fields.append(f"• {key}: {value}")
+            
+            if security_fields:
+                response += "🛡️ Security Metrics:\n"
+                for field in security_fields:
+                    response += f"{field}\n"
+                response += "\n"
+        
+        response += "=" * 60 + "\n"
+        response += "ℹ️  This analysis is provided by InsightX Network API.\n"
+        response += "🔍 For comprehensive analysis, also use the GoPlus Security tools.\n"
+        
+        return response
+
+    @server.tool()
+    def combined_solana_analysis(address: str, ctx: Context) -> str:
+        """
+        Perform combined analysis using both GoPlus Security and InsightX Network APIs.
+        
+        Args:
+            address: Solana token address to analyze
+        """
+        response = f"🔍 Combined Solana Token Analysis for {address}\n"
+        response += "=" * 80 + "\n\n"
+        
+        # GoPlus Security Analysis
+        response += "🛡️ GoPlus Security Analysis:\n"
+        response += "-" * 40 + "\n"
+        goplus_result = _make_request(ctx, "solana/token_security", {"address": address})
+        
+        if "error" in goplus_result:
+            response += f"❌ GoPlus Error: {goplus_result['error']}\n\n"
+        else:
+            if goplus_result.get("code") == 1:
+                data = goplus_result.get("result", {})
+                response += f"✅ Analysis successful\n"
+                response += f"• Token Name: {data.get('token_name', 'N/A')}\n"
+                response += f"• Symbol: {data.get('token_symbol', 'N/A')}\n"
+                response += f"• Total Supply: {data.get('total_supply', 'N/A')}\n"
+                response += f"• Holders: {data.get('holder_count', 'N/A')}\n"
+                response += f"• Open Source: {'Yes' if data.get('is_open_source') == '1' else 'No' if data.get('is_open_source') == '0' else 'Unknown'}\n"
+                response += f"• Mintable: {'Yes' if data.get('is_mintable') == '1' else 'No' if data.get('is_mintable') == '0' else 'Unknown'}\n"
+                response += f"• Honeypot: {'Yes' if data.get('is_honeypot') == '1' else 'No' if data.get('is_honeypot') == '0' else 'Unknown'}\n"
+            else:
+                response += f"❌ GoPlus Analysis failed: {goplus_result.get('message', 'Unknown error')}\n"
+        
+        response += "\n"
+        
+        # InsightX Network Analysis
+        response += "🔍 InsightX Network Analysis:\n"
+        response += "-" * 40 + "\n"
+        insightx_result = _make_insightx_request(ctx, f"tokens/sol/{address}")
+        
+        if "error" in insightx_result:
+            response += f"❌ InsightX Error: {insightx_result['error']}\n\n"
+        else:
+            response += f"✅ Analysis successful\n"
+            response += f"• Raw data available: {len(str(insightx_result))} characters\n"
+            response += f"• Data type: {type(insightx_result).__name__}\n"
+            if isinstance(insightx_result, dict):
+                response += f"• Keys found: {', '.join(list(insightx_result.keys())[:5])}{'...' if len(insightx_result) > 5 else ''}\n"
+        
+        response += "\n"
+        
+        # Summary and Recommendations
+        response += "📋 Summary and Recommendations:\n"
+        response += "-" * 40 + "\n"
+        response += "1. ✅ Use GoPlus Security for comprehensive contract analysis\n"
+        response += "2. 🔍 Use InsightX Network for additional market insights\n"
+        response += "3. ⚠️ Always cross-reference multiple sources\n"
+        response += "4. 🚨 Pay attention to high-risk indicators\n"
+        response += "5. 📊 Consider both technical and market analysis\n\n"
+        
+        response += "=" * 80 + "\n"
+        response += "⚠️  Always do your own research before investing!\n"
+        response += "🔍 This combined analysis uses multiple data sources.\n"
+        
+        return response
 
     return server

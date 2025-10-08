@@ -9,24 +9,34 @@ build:
 
 startCommand:
   type: "http"
-  configSchema:
-    type: object
-    required: [api_key]
-    properties:
-      api_key:
-        type: string
-        description: "GoPlus Security API key for authentication"
-      base_url:
-        type: string
-        description: "Base URL for GoPlus Security API"
-        default: "https://api.gopluslabs.io/api/v1/"
-      timeout:
-        type: integer
-        description: "Request timeout in seconds"
-        default: 30
-        minimum: 5
-        maximum: 300
-  exampleConfig:
-    api_key: "your-goplus-api-key-here"
-    base_url: "https://api.gopluslabs.io/api/v1/"
-    timeout: 30
+         configSchema:
+           type: object
+           required: [api_key]
+           properties:
+             api_key:
+               type: string
+               description: "GoPlus Security API key for authentication"
+             base_url:
+               type: string
+               description: "Base URL for GoPlus Security API"
+               default: "https://api.gopluslabs.io/api/v1/"
+             timeout:
+               type: integer
+               description: "Request timeout in seconds"
+               default: 30
+               minimum: 5
+               maximum: 300
+             insightx_api_key:
+               type: string
+               description: "InsightX Network API key for additional analysis (optional)"
+               default: ""
+             insightx_base_url:
+               type: string
+               description: "Base URL for InsightX Network API"
+               default: "https://api.insightx.network/scanner/v1/"
+         exampleConfig:
+           api_key: "your-goplus-api-key-here"
+           base_url: "https://api.gopluslabs.io/api/v1/"
+           timeout: 30
+           insightx_api_key: "your-insightx-api-key-here"
+           insightx_base_url: "https://api.insightx.network/scanner/v1/"
