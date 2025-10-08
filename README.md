@@ -1,5 +1,7 @@
 # GoPlus Security MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@protocoldaemon-sec/goplus-security-mcp-server)](https://smithery.ai/server/@protocoldaemon-sec/goplus-security-mcp-server)
+
 A Model Context Protocol (MCP) server that provides blockchain security analysis tools using the GoPlus Security API.
 
 ## Features
@@ -167,6 +169,14 @@ This server is designed to work with [Smithery](https://smithery.ai) for easy de
 1. Push your code to a GitHub repository
 2. Connect your repository to Smithery
 3. Deploy with one click
+
+### Installing via Smithery
+
+To install goplus-security-mcp-server automatically via [Smithery](https://smithery.ai/server/@protocoldaemon-sec/goplus-security-mcp-server):
+
+```bash
+npx -y @smithery/cli install @protocoldaemon-sec/goplus-security-mcp-server
+```
 
 ## License
 
